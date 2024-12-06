@@ -1,0 +1,17 @@
+SvgIcons/
+build/
+
+node_modules/
+public/
+assets/
+components/icon/
+styles/
+
+next.config.js
+**/*.test.js
+**/*.spec.js
+**/*.js
+**/*.ts
+**/*.tsx
+
+
