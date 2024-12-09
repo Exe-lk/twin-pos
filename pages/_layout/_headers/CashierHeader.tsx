@@ -42,25 +42,7 @@ const MyDefaultHeader = () => {
 	};
 	return (
 		<Header>
-			<HeaderLeft>
-				{/* <Navigation
-					menu={{ ...addminPagesMenu}}
-					id='header-top-menu'
-					horizontal={
-						!!deviceScreen?.width &&
-						deviceScreen.width >= Number(process.env.NEXT_PUBLIC_MOBILE_BREAKPOINT_SIZE)
-					}
-				/> */}
-                <Button
-					icon='Logout'
-					className=''
-					color='dark'
-					size='sm'
-					tag='button'
-					onClick={handleLogout}>
-						Logout
-					</Button>
-			</HeaderLeft>
+			
 			<CommonHeaderRight />
 		</Header>
 	);
