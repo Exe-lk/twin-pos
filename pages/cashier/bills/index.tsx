@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import CommonRightPanel from '../../../components/CommonRightPanel';
 import PageWrapper from '../../../layout/PageWrapper/PageWrapper';
 import { addDoc, collection, getDocs, query, where } from 'firebase/firestore';
 import { firestore } from '../../../firebaseConfig';
@@ -8,12 +7,10 @@ import Swal from 'sweetalert2';
 import Card, { CardBody, CardFooter } from '../../../components/bootstrap/Card';
 import { Dropdown } from 'primereact/dropdown';
 import FormGroup from '../../../components/bootstrap/forms/FormGroup';
-import Select from '../../../components/bootstrap/forms/Select';
-import Option from '../../../components/bootstrap/Option';
 import Input from '../../../components/bootstrap/forms/Input';
 import Button from '../../../components/bootstrap/Button';
-import { tr } from 'date-fns/locale';
 import Checks, { ChecksGroup } from '../../../components/bootstrap/forms/Checks';
+import { printReceipt } from '../../../helpers/print'
 
 interface Category {
 	id: number;
@@ -45,6 +42,14 @@ function index() {
 		hour: '2-digit',
 		minute: '2-digit',
 	});
+	const [lines, setLines] = useState<string[]>([
+		'Welcome to XYZ Store!',
+		'Item A - $10.00',
+		'Item B - $15.00',
+		'-------------------',
+		'Total - $25.00',
+		'Thank you!',
+	  ]);
 	useEffect(() => {
 		const cashier = localStorage.getItem('user');
 		if (cashier) {
@@ -171,45 +176,46 @@ function index() {
 				});
 
 				if (result.isConfirmed) {
-					const amount = calculateTotal();
-					const currentDate = new Date();
-					const formattedDate = currentDate.toLocaleDateString();
+					printReceipt(lines)
+					// const amount = calculateTotal();
+					// const currentDate = new Date();
+					// const formattedDate = currentDate.toLocaleDateString();
 
-					const year = currentDate.getFullYear();
-					const month = String(currentDate.getMonth() + 1).padStart(2, '0');
-					const day = String(currentDate.getDate()).padStart(2, '0');
-					const formattedDate1 = `${year}-${month}-${day}`;
+					// const year = currentDate.getFullYear();
+					// const month = String(currentDate.getMonth() + 1).padStart(2, '0');
+					// const day = String(currentDate.getDate()).padStart(2, '0');
+					// const formattedDate1 = `${year}-${month}-${day}`;
 
-					const values = {
-						orders: orderedItems,
-						time: currentTime,
-						date: formattedDate,
-						casheir: casher.email,
-						amount: Number(amount),
-						type: payment ? 'cash' : 'card',
-						id: id,
-					};
+					// const values = {
+					// 	orders: orderedItems,
+					// 	time: currentTime,
+					// 	date: formattedDate,
+					// 	casheir: casher.email,
+					// 	amount: Number(amount),
+					// 	type: payment ? 'cash' : 'card',
+					// 	id: id,
+					// };
 
-					const collectionRef = collection(firestore, 'orders');
+					// const collectionRef = collection(firestore, 'orders');
 
-					addDoc(collectionRef, values)
-						.then(() => {
-							Swal.fire(
-								'Added!',
+					// addDoc(collectionRef, values)
+					// 	.then(() => {
+					// 		Swal.fire(
+					// 			'Added!',
 
-								'bill has been add successfully.',
-								'success',
-							);
-							setOrderedItems([]);
+					// 			'bill has been add successfully.',
+					// 			'success',
+					// 		);
+					// 		setOrderedItems([]);
 
-							setAmount(0);
-						})
-						.catch((error) => {
-							console.error('Error adding document: ', error);
-							alert(
-								'An error occurred while adding the document. Please try again later.',
-							);
-						});
+					// 		setAmount(0);
+					// 	})
+					// 	.catch((error) => {
+					// 		console.error('Error adding document: ', error);
+					// 		alert(
+					// 			'An error occurred while adding the document. Please try again later.',
+					// 		);
+					// 	});
 				}
 			} catch (error) {
 				console.error('Error during handleUpload: ', error);
@@ -281,7 +287,7 @@ function index() {
 											className='col-12'>
 											<Dropdown
 												aria-label='State'
-												placeholder="-- Select Showroom Store's Location here --"
+												placeholder="-- Select Product --"
 												className='selectpicker col-12'
 												options={
 													items

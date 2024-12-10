@@ -303,7 +303,7 @@ const Index: NextPage = () => {
 											<th>Price</th>
 											<th>Quantity</th>
 											<th>Discount</th>
-											<th>Bar Code</th>
+											{/* <th>Bar Code</th> */}
 											<th></th>
 											{/* <th><Button icon='PersonAdd' color='primary' isLight onClick={() => setAddModalStatus(true)}>
                         New Item
@@ -382,14 +382,14 @@ const Index: NextPage = () => {
 														{item.discount}%
 													</td>
 													{/* <td>{item.reorderlevel}</td> */}
-													<td>
+													{/* <td>
 														<Barcode
 															value={item.cid}
 															width={1}
 															height={30}
 															fontSize={16}
 														/>
-													</td>
+													</td> */}
 													<td>
 														<Button
 															icon='Edit'
