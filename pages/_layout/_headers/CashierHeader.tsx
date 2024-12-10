@@ -42,7 +42,9 @@ const MyDefaultHeader = () => {
 	};
 	return (
 		<Header>
-			
+			<HeaderLeft>
+				<></>
+			</HeaderLeft>
 			<CommonHeaderRight />
 		</Header>
 	);

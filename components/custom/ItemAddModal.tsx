@@ -213,7 +213,7 @@ const ItemAddModal: FC<ItemAddModalProps> = ({ id, isOpen, setIsOpen }) => {
 							}
 						</Select>
 					</FormGroup> */}
-					<FormGroup id='quentity' label='Quentity' className='col-md-6'>
+					<FormGroup id='quentity' label='Quantity' className='col-md-6'>
 						<Input
 							type='number'
 							onChange={formik.handleChange}

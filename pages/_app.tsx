@@ -17,7 +17,9 @@ import Wrapper from '../layout/Wrapper/Wrapper';
 import App from '../layout/App/App';
 import AsideRoutes from '../layout/Aside/AsideRoutes';
 import { ToastCloseButton } from '../components/bootstrap/Toasts';
+import { PrimeReactProvider, PrimeReactContext } from 'primereact/api';
 
+import "primereact/resources/themes/lara-dark-blue/theme.css";
 const MyApp = ({ Component, pageProps }: AppProps) => {
 	getOS();
 
@@ -38,6 +40,7 @@ const MyApp = ({ Component, pageProps }: AppProps) => {
 	};
 
 	return (
+		<PrimeReactProvider>
 		<AuthContextProvider>
 			<ThemeContextProvider>
 				<ThemeProvider theme={theme}>
@@ -64,6 +67,7 @@ const MyApp = ({ Component, pageProps }: AppProps) => {
 				</ThemeProvider>
 			</ThemeContextProvider>
 		</AuthContextProvider>
+		</PrimeReactProvider>
 	);
 };
 

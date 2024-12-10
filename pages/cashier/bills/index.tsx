@@ -27,7 +27,7 @@ interface Item {
 	quentity: number;
 	quantity: number;
 	reorderlevel: number;
-	discount:number;
+	discount: number;
 }
 
 function index() {
@@ -145,7 +145,15 @@ function index() {
 		Swal.fire('Success', 'Item removed successfully.', 'success');
 	};
 	const calculateTotal = () => {
-		return orderedItems.reduce((sum, val) => sum + val.price * val.quantity-(val.price * val.quantity)/100*val.discount, 0).toFixed(2);
+		return orderedItems
+			.reduce(
+				(sum, val) =>
+					sum +
+					val.price * val.quantity -
+					((val.price * val.quantity) / 100) * val.discount,
+				0,
+			)
+			.toFixed(2);
 	};
 
 	const addbill = async () => {
@@ -235,8 +243,14 @@ function index() {
 											<td>{val.name}</td>
 											<td>{val.quantity}</td>
 											<td>{val.price}</td>
-											<td>{(val.price * val.quantity)/100*val.discount}</td>
-											<td>{val.price * val.quantity-(val.price * val.quantity)/100*val.discount}</td>
+											<td>
+												{((val.price * val.quantity) / 100) * val.discount}
+											</td>
+											<td>
+												{val.price * val.quantity -
+													((val.price * val.quantity) / 100) *
+														val.discount}
+											</td>
 											<td>
 												<Button
 													icon='delete'
@@ -265,7 +279,26 @@ function index() {
 											id='product'
 											label='Product Name'
 											className='col-12'>
-											<Select
+											<Dropdown
+												aria-label='State'
+												placeholder="-- Select Showroom Store's Location here --"
+												className='selectpicker col-12'
+												options={
+													items
+														? items.map((type: any) => ({
+																value: type.cid,
+																label: type.name,
+														  }))
+														: [{ value: '', label: 'No Data' }]
+												}
+												onChange={(e: any) =>
+													setSelectedProduct(e.target.value)
+												}
+												// onBlur={formik.handleBlur}
+												value={selectedProduct}
+												filter
+											/>
+											{/* <Select
 												ariaLabel='Default select example'
 												onChange={(e: any) =>
 													setSelectedProduct(e.target.value)
@@ -278,7 +311,7 @@ function index() {
 														{option.name}
 													</Option>
 												))}
-											</Select>
+											</Select> */}
 										</FormGroup>
 										<FormGroup
 											id='quantity'
@@ -397,13 +430,19 @@ function index() {
 
 								<hr />
 
-								{orderedItems.map(({cid, name, quantity, price, discount}: any, index: any) => (
-
-									<p>{index+1}. {name}<br/>
-									{cid}&emsp;&emsp;&emsp;{quantity}&emsp;&emsp;{price}.00&emsp;&emsp; {(price *quantity)/100*discount}   &emsp;{price * quantity-(price * quantity)/100*discount}  
-									</p>
-									
-								))}
+								{orderedItems.map(
+									({ cid, name, quantity, price, discount }: any, index: any) => (
+										<p>
+											{index + 1}. {name}
+											<br />
+											{cid}&emsp;&emsp;&emsp;{quantity}&emsp;&emsp;{price}
+											.00&emsp;&emsp; {((price * quantity) / 100) * discount}{' '}
+											&emsp;
+											{price * quantity -
+												((price * quantity) / 100) * discount}
+										</p>
+									),
+								)}
 
 								<hr />
 								<div className='d-flex justify-content-between'>
@@ -411,46 +450,29 @@ function index() {
 										<strong>SUB Total</strong>
 									</div>
 									<div>
-										<strong>
-										{calculateTotal()}
-										</strong>
+										<strong>{calculateTotal()}</strong>
 									</div>
 								</div>
-								<hr/>
+								<hr />
 								<div className='d-flex justify-content-between'>
-									<div>
-										Cash Received
-									</div>
-									<div>
-										{amount}.00
-									</div>
+									<div>Cash Received</div>
+									<div>{amount}.00</div>
 								</div>
 								<div className='d-flex justify-content-between'>
-									<div>
-										Balance
-									</div>
-									<div>
-										{amount-Number(calculateTotal())}
-									</div>
+									<div>Balance</div>
+									<div>{amount - Number(calculateTotal())}</div>
 								</div>
 								<div className='d-flex justify-content-between'>
-									<div>
-										No.Of Pieces
-									</div>
-									<div>
-									{orderedItems.length}
-									</div>
+									<div>No.Of Pieces</div>
+									<div>{orderedItems.length}</div>
 								</div>
 								<div className='d-flex justify-content-between'>
-									<div>
-										DATE : {currentDate}
-									</div>
-									
+									<div>DATE : {currentDate}</div>
 								</div>
 								<hr />
 								<center>THANK YOU COME AGAIN</center>
 								<hr />
-								
+
 								<center style={{ fontSize: '11px' }}>
 									Please call our hotline
 									<br />
