@@ -29,6 +29,7 @@ interface Item {
 	quentity: number;
 	category: string;
 	reorderlevel: number;
+	discount:number
 }
 interface Category {
 	categoryname: string
@@ -42,7 +43,8 @@ const ItemEditModal: FC<ItemEditModalProps> = ({ id, isOpen, setIsOpen }) => {
 		price: 0,
 		category: "",
 		quentity: 0,
-		reorderlevel: 0
+		reorderlevel: 0,
+		discount:0
     }
 	const [item, setItem] = useState<Item>(data);
 	const [imageurl, setImageurl] = useState<any>(null);
@@ -137,7 +139,8 @@ const ItemEditModal: FC<ItemEditModalProps> = ({ id, isOpen, setIsOpen }) => {
 			price: 0,
 			quentity: 0,
 			reorderlevel: 0,
-			category: ""
+			category: "",
+			discount:0
 		},
 		validate: (values) => {
 			const errors: {
@@ -155,12 +158,8 @@ const ItemEditModal: FC<ItemEditModalProps> = ({ id, isOpen, setIsOpen }) => {
             if (!item.price) {
 				errors.price = 'Required';
 			}
-            if (!item.reorderlevel) {
-				errors.reorderlevel = 'Required';
-			}
-			if (!item.category) {
-				errors.category = 'Required';
-			}
+         
+		
             return errors;
 		},
 		onSubmit: async (values) => {
@@ -230,23 +229,18 @@ const ItemEditModal: FC<ItemEditModalProps> = ({ id, isOpen, setIsOpen }) => {
 							validFeedback='Looks good!'
 						/>
 					</FormGroup>
-                    {/* <FormGroup id='category' label='Category' onChange={formik.handleChange} className='col-md-6'>
-                        <Select
-							ariaLabel='Default select example'
-							onChange={(e: any) => { item.category = e.target.value }}
-							value={item.category}
+                    <FormGroup id='discount' label='Discount (%)' onChange={formik.handleChange} className='col-md-6'>
+					<Input
+							type='number'
+                            value={item.discount}
+							onChange={(e: any) => { item.discount = e.target.value }}
 							onBlur={formik.handleBlur}
 							isValid={formik.isValid}
-							isTouched={formik.touched.category}
-							invalidFeedback={formik.errors.category}
-							validFeedback='Looks good!'>
-							{
-								category.map((item, index) => (
-                                  <Option value={item.categoryname}>{item.categoryname}</Option>
-								))
-							}
-						</Select>
-                    </FormGroup> */}
+							isTouched={formik.touched.discount}
+							invalidFeedback={formik.errors.discount}
+							validFeedback='Looks good!'
+                        />
+                    </FormGroup>
 					<FormGroup id='quentity' label='quantity' onChange={formik.handleChange} className='col-md-6'>
 						<Input
 							type='number'

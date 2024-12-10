@@ -301,9 +301,9 @@ const Index: NextPage = () => {
 										<tr>
 											<th>Name</th>
 											<th>Price</th>
-											<th>Quentity</th>
+											<th>Quantity</th>
 											<th>Discount</th>
-											<th>BarCode</th>
+											<th>Bar Code</th>
 											<th></th>
 											{/* <th><Button icon='PersonAdd' color='primary' isLight onClick={() => setAddModalStatus(true)}>
                         New Item
@@ -314,25 +314,15 @@ const Index: NextPage = () => {
 										{item
 											.filter((val) => {
 												if (searchTerm === '') {
-													if (!selectedCategories.length) {
-														return true; // Show all items if no categories selected
-													} else {
-														return selectedCategories.includes(
-															val.category.toString(),
-														);
-													}
+													return val
 												} else if (
 													val.name
 														.toLowerCase()
+														.includes(searchTerm.toLowerCase())||val.cid
+														.toLowerCase()
 														.includes(searchTerm.toLowerCase())
 												) {
-													if (!selectedCategories.length) {
-														return true; // Show all items if no categories selected
-													} else {
-														return selectedCategories.includes(
-															val.category.toString(),
-														);
-													}
+													return val
 												}
 											})
 											.map((item:any, index) => (
