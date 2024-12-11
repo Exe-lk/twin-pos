@@ -11,6 +11,7 @@ import Input from '../../../components/bootstrap/forms/Input';
 import Button from '../../../components/bootstrap/Button';
 import Checks, { ChecksGroup } from '../../../components/bootstrap/forms/Checks';
 import { printReceipt } from '../../../helpers/print';
+import Logo from '../../../assets/logos/logo-new.jpg';
 
 interface Category {
 	id: number;
@@ -136,7 +137,13 @@ function index() {
 			setSelectedProduct('');
 			setQuantity(1);
 
-			Swal.fire('Success', 'Item added/replaced successfully.', 'success');
+			Swal.fire({
+				title: 'Success',
+				text: 'Item added/replaced successfully.',
+				icon: 'success',
+				showConfirmButton: false, // Hides the OK button
+				timer: 2000, // Closes the alert after 2 seconds (2000ms)
+			});
 		} else {
 			Swal.fire('Error', 'Selected item not found.', 'error');
 		}
@@ -146,8 +153,13 @@ function index() {
 		// Filter out the item with the matching cid
 		const updatedItems = orderedItems.filter((item) => item.cid !== cid);
 		setOrderedItems(updatedItems);
-
-		Swal.fire('Success', 'Item removed successfully.', 'success');
+		Swal.fire({
+			title: 'Success',
+			text: 'Item removed successfully.',
+			icon: 'success',
+			showConfirmButton: false, // Hides the OK button
+			timer: 2000, // Closes the alert after 2 seconds (2000ms)
+		});
 	};
 	const calculateTotal = () => {
 		return orderedItems
@@ -161,7 +173,7 @@ function index() {
 			.toFixed(2);
 	};
 
-	const addbill = async () => { 
+	const addbill = async () => {
 		if (amount >= Number(calculateTotal())) {
 			try {
 				const result = await Swal.fire({
@@ -173,13 +185,13 @@ function index() {
 					cancelButtonColor: '#d33',
 					confirmButtonText: 'Yes, Print Bill!',
 				});
-	
+
 				if (result.isConfirmed) {
 					printReceipt(lines);
 					const totalAmount = calculateTotal();
 					const currentDate = new Date();
 					const formattedDate = currentDate.toLocaleDateString();
-	
+
 					const values = {
 						orders: orderedItems,
 						time: currentTime,
@@ -189,14 +201,14 @@ function index() {
 						type: payment ? 'cash' : 'card',
 						id: id,
 					};
-	
+
 					console.log(orderedItems);
-	
+
 					const collectionRef = collection(firestore, 'orders');
-	
+
 					// Save the order
 					await addDoc(collectionRef, values);
-	
+
 					// Update the item quantities
 					const updatePromises = orderedItems.map(async (order) => {
 						const itemRef = doc(firestore, 'item', order.cid);
@@ -205,15 +217,17 @@ function index() {
 							quentity: newQuantity > 0 ? newQuantity : 0, // Ensure quantity doesn't go below zero
 						});
 					});
-	
+
 					// Wait for all updates to complete
 					await Promise.all(updatePromises);
-	
-					Swal.fire(
-						'Added!',
-						'Bill has been added successfully.',
-						'success',
-					);
+
+					Swal.fire({
+						title: 'Success',
+						text: 'Bill has been added successfully.',
+						icon: 'success',
+						showConfirmButton: false, // Hides the OK button
+						timer: 2000, // Closes the alert after 2 seconds (2000ms)
+					});
 					setOrderedItems([]);
 					setAmount(0);
 				}
@@ -225,7 +239,7 @@ function index() {
 			Swal.fire('Warning..!', 'Insufficient amount', 'error');
 		}
 	};
-	
+
 	return (
 		<PageWrapper className=''>
 			<div className='row m-4'>
@@ -288,7 +302,7 @@ function index() {
 											className='col-12'>
 											<Dropdown
 												aria-label='State'
-												editable 
+												editable
 												placeholder='-- Select Product --'
 												className='selectpicker col-12'
 												options={
@@ -304,7 +318,6 @@ function index() {
 												}
 												// onBlur={formik.handleBlur}
 												value={selectedProduct}
-												
 											/>
 											{/* <Select
 												ariaLabel='Default select example'
@@ -394,7 +407,7 @@ function index() {
 													validFeedback='Looks good!'
 												/>
 											</FormGroup>
-										
+
 											<Button
 												color='success'
 												className='mt-4 w-100'
@@ -423,13 +436,15 @@ function index() {
 								}}
 								className='p-3'>
 								<center>
-									<h6>TWIN CLOTHING</h6>
+									<img src={Logo} style={{ height: 50, width: 100 }} alt='' />
 									<p>
-										144/1. KATUWANA ROAD,
+										No.137M,
 										<br />
-										HOMAGAMA.
+										Colombo Road,
 										<br />
-										TEL : - 0112 - 894991
+										Biyagama
+										<br />
+										TEL : -076 227 1846 / 076 348 0380
 									</p>
 								</center>
 								<div className='d-flex justify-content-between align-items-center mt-4'>
@@ -457,9 +472,11 @@ function index() {
 											{cid}&emsp;&emsp;&emsp;{quantity}&emsp;&emsp;{price}
 											.00&emsp;&emsp; {((price * quantity) / 100) *
 												discount}{' '}
-											&emsp;
-											{price * quantity -
-												((price * quantity) / 100) * discount}
+											&emsp;&emsp;
+											{(
+												price * quantity -
+												((price * quantity) / 100) * discount
+											).toFixed(2)}
 										</p>
 									),
 								)}

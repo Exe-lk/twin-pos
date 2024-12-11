@@ -167,13 +167,13 @@ export const cashierPagesMenu = {
 		icon: 'HistoryToggleOff',
 		subMenu: null,
 	},
-	newbill: {
-		id: 'user11',
-		text: 'New Bill',
-		path: 'cashier/new-bills',
-		icon: 'HistoryToggleOff',
-		subMenu: null,
-	},
+	// newbill: {
+	// 	id: 'user11',
+	// 	text: 'New Bill',
+	// 	path: 'cashier/new-bills',
+	// 	icon: 'HistoryToggleOff',
+	// 	subMenu: null,
+	// },
 	
 };
 

@@ -15,6 +15,7 @@ import Page from '../../../layout/Page/Page';
 import Card, { CardBody } from '../../../components/bootstrap/Card';
 import StockAddModal from '../../../components/custom/ItemAddModal';
 import StockEditModal from '../../../components/custom/ItemEditModal';
+import StockEditModal1 from '../../../components/custom/Changeqty';
 import { doc, deleteDoc, collection, getDocs, updateDoc, query, where } from 'firebase/firestore';
 import { firestore } from '../../../firebaseConfig';
 import Dropdown, { DropdownToggle, DropdownMenu } from '../../../components/bootstrap/Dropdown';
@@ -48,17 +49,12 @@ const Index: NextPage = () => {
 	const [searchTerm, setSearchTerm] = useState(''); // State for search term
 	const [addModalStatus, setAddModalStatus] = useState<boolean>(false); // State for add modal status
 	const [editModalStatus, setEditModalStatus] = useState<boolean>(false); // State for edit modal status
+	const [editModalStatus1, setEditModalStatus1] = useState<boolean>(false);
 	const [item, setItem] = useState<Item[]>([]); // State for stock data
-	const [category, setcategory] = useState<Category[]>([]);
-	const [orderData, setOrdersData] = useState([]);
-	const [stockData, setStockData] = useState([]);
 	const [id, setId] = useState<string>(''); // State for current stock item ID
 	const [id1, setId1] = useState<string>('12356'); // State for new item ID
 	const [status, setStatus] = useState(true);
-	const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
-	const [quantityDifference, setQuantityDifference] = useState([]);
-	// State for managing data fetching status
-	// Fetch data from Firestore for items
+
 	useEffect(() => {
 		const fetchData = async () => {
 			try {
@@ -80,135 +76,7 @@ const Index: NextPage = () => {
 			}
 		};
 		fetchData();
-	}, [editModalStatus, addModalStatus, status]); // Fetch data whenever editModalStatus or addModalStatus changes
-	useEffect(() => {
-		const fetchData = async () => {
-			try {
-				const dataCollection = collection(firestore, 'category');
-				const querySnapshot = await getDocs(dataCollection);
-				const firebaseData = querySnapshot.docs.map((doc) => {
-					const data = doc.data() as Category;
-					return {
-						...data,
-						cid: doc.id,
-					};
-				});
-				setcategory(firebaseData);
-			} catch (error) {
-				console.error('Error fetching data: ', error);
-			}
-		};
-		fetchData();
-	}, [editModalStatus, addModalStatus, status]);
-
-	//get stock count
-	useEffect(() => {
-		const fetchData = async () => {
-			try {
-				const dataCollection = collection(firestore, 'stock');
-				const q = query(dataCollection, where('active', '==', true));
-				const querySnapshot = await getDocs(q);
-				const firebaseData = querySnapshot.docs.map((doc) => {
-					const data = doc.data();
-					return {
-						...data,
-						cid: doc.id,
-					};
-				});
-
-				// Create a dictionary to group by item_id and sum quantities
-				const stockDictionary: any = {};
-
-				firebaseData.forEach((item: any) => {
-					if (stockDictionary[item.item_id]) {
-						stockDictionary[item.item_id] += item.quentity;
-					} else {
-						stockDictionary[item.item_id] = item.quentity;
-					}
-				});
-
-				// Convert dictionary to array of objects
-				const filteredData: any = Object.keys(stockDictionary).map((item_id) => ({
-					item_id,
-					quantity: stockDictionary[item_id],
-				}));
-
-				console.log(filteredData);
-				setStockData(filteredData);
-			} catch (error) {
-				console.error('Error fetching data: ', error);
-			}
-		};
-		fetchData();
-	}, [editModalStatus, addModalStatus, status]);
-
-	//grt sells quentity count
-	useEffect(() => {
-		const fetchData = async () => {
-			try {
-				const dataCollection = collection(firestore, 'orders');
-				const querySnapshot = await getDocs(dataCollection);
-				const firebaseData = querySnapshot.docs.map((doc) => {
-					const data = doc.data();
-					return {
-						...data,
-						cid: doc.id,
-					};
-				});
-
-				// Create a dictionary to group by name and sum quantities
-				const ordersDictionary: any = {};
-
-				firebaseData.forEach((order: any) => {
-					order.orders.forEach((item: any) => {
-						if (ordersDictionary[item.name]) {
-							ordersDictionary[item.name] += item.quentity;
-						} else {
-							ordersDictionary[item.name] = item.quentity;
-						}
-					});
-				});
-
-				// Convert dictionary to array of objects
-				const filteredData: any = Object.keys(ordersDictionary).map((name) => ({
-					name,
-					quantity: ordersDictionary[name],
-				}));
-
-				console.log(filteredData);
-				setOrdersData(filteredData);
-			} catch (error) {
-				console.error('Error fetching data: ', error);
-			}
-		};
-		fetchData();
-	}, [editModalStatus, addModalStatus, status]);
-
-	useEffect(() => {
-		const calculateQuantityDifference = () => {
-			const differenceArray: any = [];
-
-			stockData.forEach((stockItem: any) => {
-				const orderItem: any = orderData.find(
-					(order: any) => order.name === stockItem.item_id,
-				);
-				if (orderItem) {
-					const difference = stockItem.quantity - orderItem.quantity;
-					differenceArray.push({
-						item_id: stockItem.item_id,
-						quantity_difference: difference,
-					});
-				}
-			});
-			console.log(differenceArray);
-			setQuantityDifference(differenceArray);
-		};
-
-		if (stockData.length > 0 && orderData.length > 0) {
-			calculateQuantityDifference();
-		}
-	}, [stockData, orderData]);
-
+	}, [editModalStatus, addModalStatus, status, editModalStatus1]); // Fetch data whenever editModalStatus or addModalStatus changes
 
 	// Function to handle deletion of an item
 	const handleClickDelete = async (item: any) => {
@@ -278,7 +146,6 @@ const Index: NextPage = () => {
 					/>
 				</SubHeaderLeft>
 				<SubHeaderRight>
-					
 					<SubheaderSeparator />
 					{/* Button to open  New Item modal */}
 					<Button
@@ -286,7 +153,7 @@ const Index: NextPage = () => {
 						color='primary'
 						isLight
 						onClick={() => setAddModalStatus(true)}>
-						New Item
+						Create Item
 					</Button>
 				</SubHeaderRight>
 			</SubHeader>
@@ -296,36 +163,34 @@ const Index: NextPage = () => {
 						{/* Table for displaying customer data */}
 						<Card stretch>
 							<CardBody isScrollable className='table-responsive'>
-							<table className='table table-hover table-bordered border-primary'>
-							<thead className={'table-dark border-primary'}>
+								<table className='table table-hover table-bordered border-primary'>
+									<thead className={'table-dark border-primary'}>
 										<tr>
 											<th>Name</th>
 											<th>Price</th>
 											<th>Quantity</th>
 											<th>Discount</th>
-											{/* <th>Bar Code</th> */}
 											<th></th>
-											{/* <th><Button icon='PersonAdd' color='primary' isLight onClick={() => setAddModalStatus(true)}>
-                        New Item
-                      </Button></th> */}
+										
 										</tr>
 									</thead>
 									<tbody>
 										{item
 											.filter((val) => {
 												if (searchTerm === '') {
-													return val
+													return val;
 												} else if (
 													val.name
 														.toLowerCase()
-														.includes(searchTerm.toLowerCase())||val.cid
+														.includes(searchTerm.toLowerCase()) ||
+													val.cid
 														.toLowerCase()
 														.includes(searchTerm.toLowerCase())
 												) {
-													return val
+													return val;
 												}
 											})
-											.map((item:any, index) => (
+											.map((item: any, index) => (
 												<tr key={item.cid}>
 													<td>
 														<div className='d-flex align-items-center'>
@@ -363,48 +228,36 @@ const Index: NextPage = () => {
 														</div>
 													</td>
 													<td>{item.price}</td>
+													<td>{item.quentity}</td>
+													<td>{item.discount}%</td>
+
 													<td>
-														{/* {quantityDifference
-															.filter((val: any) => {
-																if (
-																	val.item_id.includes(item.name)
-																) {
-																	return val;
-																}
-															})
-															.map((quentity: any, index) => (
-																<>{quentity.quantity_difference}</>
-															))} */}
-															{item.quentity}
-															
-													</td>
-													<td>
-														{item.discount}%
-													</td>
-													{/* <td>{item.reorderlevel}</td> */}
-													{/* <td>
-														<Barcode
-															value={item.cid}
-															width={1}
-															height={30}
-															fontSize={16}
-														/>
-													</td> */}
-													<td>
+													<Button
+															icon='Edit'
+															className='m-2'
+															tag='a'
+															color='success'
+															onClick={() => (
+																setEditModalStatus1(true),
+																setId(item.cid)
+															)}>
+															 Stock In
+														</Button>
 														<Button
 															icon='Edit'
 															tag='a'
-															color='info'
+															color='warning'
 															onClick={() => (
 																setEditModalStatus(true),
 																setId(item.cid)
 															)}>
-															Edit
+															Update
 														</Button>
+														
 														<Button
 															className='m-2'
 															icon='Delete'
-															color='warning'
+															color='danger'
 															onClick={() => handleClickDelete(item)}>
 															Delete
 														</Button>
@@ -420,6 +273,7 @@ const Index: NextPage = () => {
 			</Page>
 			<StockAddModal setIsOpen={setAddModalStatus} isOpen={addModalStatus} id={id1} />
 			<StockEditModal setIsOpen={setEditModalStatus} isOpen={editModalStatus} id={id} />
+			<StockEditModal1 setIsOpen={setEditModalStatus1} isOpen={editModalStatus1} id={id} />
 		</PageWrapper>
 	);
 };
