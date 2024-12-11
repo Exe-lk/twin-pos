@@ -153,7 +153,7 @@ const Index: NextPage = () => {
 						color='primary'
 						isLight
 						onClick={() => setAddModalStatus(true)}>
-						New Item
+						Create Item
 					</Button>
 				</SubHeaderRight>
 			</SubHeader>
@@ -232,17 +232,7 @@ const Index: NextPage = () => {
 													<td>{item.discount}%</td>
 
 													<td>
-														<Button
-															icon='Edit'
-															tag='a'
-															color='info'
-															onClick={() => (
-																setEditModalStatus(true),
-																setId(item.cid)
-															)}>
-															Edit
-														</Button>
-														<Button
+													<Button
 															icon='Edit'
 															className='m-2'
 															tag='a'
@@ -251,12 +241,23 @@ const Index: NextPage = () => {
 																setEditModalStatus1(true),
 																setId(item.cid)
 															)}>
-															Add new stock
+															 Stock In
 														</Button>
 														<Button
-															// className='m-2'
-															icon='Delete'
+															icon='Edit'
+															tag='a'
 															color='warning'
+															onClick={() => (
+																setEditModalStatus(true),
+																setId(item.cid)
+															)}>
+															Update
+														</Button>
+														
+														<Button
+															className='m-2'
+															icon='Delete'
+															color='danger'
 															onClick={() => handleClickDelete(item)}>
 															Delete
 														</Button>
