@@ -260,45 +260,48 @@ function index() {
 			}
 		  
 			const config = window.qz.configs.create('XP-58');
-		  
-			// Convert your invoice HTML to plain text with formatting
+
 			const data = [
-			  '\x1B\x40', // Initialize printer
-			  '\x1D\x21\x10', // Set font size to a smaller font (smaller than the default size)
-			  '\x1B\x61\x01', // Center alignment
-		  
-			  'No.137M,\nColombo Road,\nBiyagama\n', // Address
-			  'TEL: 076 227 1846 / 076 348 0380\n\n', // Contact details
-			  '\x1B\x61\x00', // Left alignment
-			  `CASHIER: UNIT NO: 2\nSTART TIME: ${currentTime}\nINVOICE NO: ${id}\n`,
-			  '\x1B\x61\x00', // Left alignment
-			  '----------------------------\n', // Line adjusted for width
-			  'Product Qty U/Price D/Amt\n', // Columns adjusted
-			  'Net Value\n',
-			  '----------------------------\n',
-			  ...orderedItems.map(({ name, quantity, price, discount }) => {
-				const discountAmount = ((price * quantity) / 100) * discount;
-				const netValue = price * quantity - discountAmount;
-		  
-				// Adjust name length and spacing
-				const truncatedName = name.length > 10 ? name.substring(0, 10) + '...' : name;
-		  
-				return `${truncatedName} ${quantity}  ${price.toFixed(2)}  ${discountAmount.toFixed(2)}  ${netValue.toFixed(2)}\n`;
-			  }),
-			  '----------------------------\n',
-			  `SUB Total: ${calculateTotal()}\n`,
-			  `Cash Received: ${amount}.00\n`,
-			  `Balance: ${(amount - Number(calculateTotal())).toFixed(2)}\n`,
-			  `No. of Pieces: ${orderedItems.length}\n`,
-			  `DATE: ${currentDate}\n`,
-			  '----------------------------\n',
-			  '\x1B\x61\x01', // Center alignment
-			  'THANK YOU COME AGAIN\n',
-			  '----------------------------\n',
-			  '\x1B\x61\x01', // Center alignment
-			  'Please call our hotline\nfor your valued suggestions and comments.\n',
-			  '\x1D\x56\x41', // Cut paper
-			];
+				'\x1B\x40', // Initialize printer
+				'\x1B\x4D\x00', // Set font size to a smaller font
+				'\x1B\x61\x01', // Center alignment
+				'No.137M,\nColombo Road,\nBiyagama\n\n', // Address
+				'\x1B\x61\x00', // Left alignment
+				'TEL:076 227 1846 / 076 348 0380\n\n', // Contact details
+				`START TIME: ${currentTime}\nINVOICE NO: ${id}\n`,
+				'\x1B\x61\x00', // Left alignment
+				'----------------------------\n', // Line adjusted for width
+				'Product Qty U/Price Net Value\n', // Columns adjusted
+				'----------------------------\n',
+				...orderedItems.map(({ name, quantity, price, discount }) => {
+				  const discountAmount = ((price * quantity) / 100) * discount;
+				  const netValue = price * quantity - discountAmount;
+			  
+				  // Adjust name length and spacing
+				  const truncatedName = name.length > 10 ? name.substring(0, 10) + '...' : name;
+			  
+				  return `${truncatedName} \n         ${quantity}  ${price.toFixed(2)} ${netValue.toFixed(2)}\n`;
+				}),
+				'----------------------------\n',
+				`TOTAL           :\n`,
+				`Discount Amount :\n`,
+				`SUB TOTAL       : ${calculateTotal()}\n`,
+				`Cash Received   : ${amount}.00\n`,
+				`Balance         : ${(amount - Number(calculateTotal())).toFixed(2)}\n`,
+				'\n',
+				`No. of Pieces   : ${orderedItems.length}\n`,
+				'----------------------------\n',
+				'\x1B\x61\x01', // Center alignment
+				'THANK YOU COME AGAIN !\n',
+				'----------------------------\n',
+				'\x1B\x61\x01', // Center alignment
+				'Retail POS by EXE.lk\n',
+				'Call: 070 332 9900\n',
+				'----------------------------\n',
+				'----------------------------\n',
+				'----------------------------\n',
+				'\x1D\x56\x41', // Cut paper
+			  ];
 		  
 			await window.qz.print(config, data);
 			alert('Printed successfully!');
@@ -306,12 +309,6 @@ function index() {
 			console.error('Printing failed', error);
 		  }
 		  
-		  
-		  
-		  
-		  
-          
-      
 				}
 			} catch (error) {
 				console.error('Error during handleUpload: ', error);
