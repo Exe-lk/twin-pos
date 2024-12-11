@@ -1,4 +1,4 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import classNames from 'classnames';
 import { useTranslation } from 'next-i18next';
 import { GetStaticProps } from 'next';
@@ -21,18 +21,18 @@ const DefaultAside = () => {
 	// Context for theme
 	const { asideStatus, setAsideStatus } = useContext(ThemeContext);
 
-	// State to manage document status
-	const [doc, setDoc] = useState(
-		(typeof window !== 'undefined' &&
-			localStorage.getItem('facit_asideDocStatus') === 'true') ||
-		false,
-	);
+	useEffect(() => {
+		const validateUser = async () => {
+			const email = localStorage.getItem('userRole');
+			if (email == 'Cashier') {
+				
+			} else {
+				router.push('/');
+			}
+		};
 
-	// Translation hook
-	const { t } = useTranslation(['common', 'menu']);
-
-	// Dark mode hook
-	const { darkModeStatus } = useDarkMode();
+		validateUser();
+	}, []);
 	const router = useRouter();
 	// Function to handle logout button click
 	const handleLogout = async () => {
@@ -49,6 +49,7 @@ const DefaultAside = () => {
 			if (result.isConfirmed) {
 				try {
 					localStorage.removeItem('user');
+					localStorage.removeItem('userRole');
 
 					router.push('/');
 				} catch (error) {
