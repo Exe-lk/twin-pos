@@ -253,7 +253,6 @@ function index() {
           }
       
 		
-
 		  try {
 			if (!window.qz.websocket.isActive()) {
 			  await window.qz.websocket.connect();
@@ -261,22 +260,26 @@ function index() {
 		  
 			const config = window.qz.configs.create('XP-58');
 		  
-			// Fetch the logo image as a Base64 string
-			const logoImageBase64 = await fetchImageAsBase64(Logo);
+			// Convert Base64 image to binary
+			const logoImageBase64:any = await fetchImageAsBase64(Logo); // Function fetches Base64
+			const logoImageBinary = atob(logoImageBase64.split(',')[1]); // Convert to binary data
 		  
-			// Convert Base64 image to ESC/POS format (example implementation, ensure compatibility with your printer)
-			const imageCommand = '\x1D\x76\x30\x00'; // ESC/POS image command placeholder
+			// Font size adjustment
+			const fontSmall = '\x1D\x21\x00'; // Default size
+			const fontDouble = '\x1D\x21\x11'; // Double height and width
 		  
-			// Define the print data
+			// Print data
 			const data = [
 			  '\x1B\x40', // Initialize printer
 			  '\x1B\x61\x01', // Center alignment
-			  'TWIN CLOTHING\n', // Business name
-			  '\n', // Add a blank line
-			  `${imageCommand}${logoImageBase64}`, // Add image in Base64 format (adjust as needed for ESC/POS compatibility)
 			  '\n',
-			  'No.137M,\nColombo Road,\nBiyagama\n', // Address
-			  'TEL : - 076 227 1846 / 076 348 0380\n\n', // Contact information
+			  // Logo image
+			  '\x1D\x76\x30\x00', // Print raster bit image command
+			  logoImageBinary, // Logo binary data (ensure printer compatibility)
+			  '\n',
+			  fontSmall, // Reset to small font
+			  'No.137M,\nColombo Road,\nBiyagama\n',
+			  'TEL : -076 227 1846 / 076 348 0380\n\n',
 			  '\x1B\x61\x00', // Left alignment
 			  '--------------------------------\n',
 			  'Product     Qty  U/Price  D/Amt  Net Value\n',
@@ -292,7 +295,7 @@ function index() {
 			  `Balance: ${(amount - Number(calculateTotal())).toFixed(2)}\n`,
 			  `No. of Pieces: ${orderedItems.length}\n`,
 			  `DATE: ${currentDate}\n`,
-			  '\n', // Blank line
+			  '\n\n', // Blank lines
 			  '\x1B\x61\x01', // Center alignment
 			  'THANK YOU COME AGAIN\n',
 			  '--------------------------------\n',
