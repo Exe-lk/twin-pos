@@ -183,7 +183,17 @@ function index() {
 			)
 			.toFixed(2);
 	};
-
+	async function fetchImageAsBase64(imagePath:any) {
+		const response = await fetch(imagePath);
+		const blob = await response.blob();
+		
+		return new Promise((resolve, reject) => {
+		  const reader = new FileReader();
+		  reader.onloadend = () => resolve(reader.result);
+		  reader.onerror = reject;
+		  reader.readAsDataURL(blob);
+		});
+	  }
 	const addbill = async () => {
 		if (amount >= Number(calculateTotal())) {
 			try {
@@ -242,51 +252,62 @@ function index() {
             return;
           }
       
-          try {
-            if (!window.qz.websocket.isActive()) {
-              await window.qz.websocket.connect();
-            }
-          
-            const config = window.qz.configs.create('XP-58');
-          
-            // Convert your invoice HTML to plain text with formatting
-            const data = [
-              '\x1B\x40', // Initialize printer
-              '\x1B\x61\x01', // Center alignment
-              'TWIN CLOTHING\n', // Company name
-              'No.137M,\nColombo Road,\nBiyagama\n', // Address
-              'TEL: 076 227 1846 / 076 348 0380\n\n', // Contact details
-              '\x1B\x61\x00', // Left alignment
-              `CASHIER: UNIT NO: 2\nSTART TIME: ${currentTime}\nINVOICE NO: ${id}\n`,
-              '\x1B\x61\x00', // Left alignment
-              '--------------------------------\n',
-              'Product     Qty  U/Price  D/Amt  Net Value\n',
-              '--------------------------------\n',
-              ...orderedItems.map(({ name, quantity, price, discount }) => {
-                const discountAmount = ((price * quantity) / 100) * discount;
-                const netValue = price * quantity - discountAmount;
-                return `${name} ${quantity}   ${price.toFixed(2)}   ${discountAmount.toFixed(2)}   ${netValue.toFixed(2)}\n`;
-              }),
-              '--------------------------------\n',
-              `SUB Total: ${calculateTotal()}\n`,
-              `Cash Received: ${amount}.00\n`,
-              `Balance: ${(amount - Number(calculateTotal())).toFixed(2)}\n`,
-              `No. of Pieces: ${orderedItems.length}\n`,
-              `DATE: ${currentDate}\n`,
-              '--------------------------------\n',
-              '\x1B\x61\x01', // Center alignment
-              'THANK YOU COME AGAIN\n',
-              '--------------------------------\n',
-              '\x1B\x61\x01', // Center alignment
-              'Please call our hotline\nfor your valued suggestions and comments.\n',
-              '\x1D\x56\x41', // Cut paper
-            ];
-          
-            await window.qz.print(config, data);
-            alert('Printed successfully!');
-          } catch (error) {
-            console.error('Printing failed', error);
-          }
+		
+
+		  try {
+			if (!window.qz.websocket.isActive()) {
+			  await window.qz.websocket.connect();
+			}
+		  
+			const config = window.qz.configs.create('XP-58');
+		  
+			// Fetch the logo image as a Base64 string
+			const logoImageBase64 = await fetchImageAsBase64(Logo);
+		  
+			// Convert Base64 image to ESC/POS format (example implementation, ensure compatibility with your printer)
+			const imageCommand = '\x1D\x76\x30\x00'; // ESC/POS image command placeholder
+		  
+			// Define the print data
+			const data = [
+			  '\x1B\x40', // Initialize printer
+			  '\x1B\x61\x01', // Center alignment
+			  'TWIN CLOTHING\n', // Business name
+			  '\n', // Add a blank line
+			  `${imageCommand}${logoImageBase64}`, // Add image in Base64 format (adjust as needed for ESC/POS compatibility)
+			  '\n',
+			  'No.137M,\nColombo Road,\nBiyagama\n', // Address
+			  'TEL : - 076 227 1846 / 076 348 0380\n\n', // Contact information
+			  '\x1B\x61\x00', // Left alignment
+			  '--------------------------------\n',
+			  'Product     Qty  U/Price  D/Amt  Net Value\n',
+			  '--------------------------------\n',
+			  ...orderedItems.map(({ name, quantity, price, discount }) => {
+				const discountAmount = ((price * quantity) / 100) * discount;
+				const netValue = price * quantity - discountAmount;
+				return `${name} ${quantity}   ${price.toFixed(2)}   ${discountAmount.toFixed(2)}   ${netValue.toFixed(2)}\n`;
+			  }),
+			  '--------------------------------\n',
+			  `SUB Total: ${calculateTotal()}\n`,
+			  `Cash Received: ${amount}.00\n`,
+			  `Balance: ${(amount - Number(calculateTotal())).toFixed(2)}\n`,
+			  `No. of Pieces: ${orderedItems.length}\n`,
+			  `DATE: ${currentDate}\n`,
+			  '\n', // Blank line
+			  '\x1B\x61\x01', // Center alignment
+			  'THANK YOU COME AGAIN\n',
+			  '--------------------------------\n',
+			  '\n\n', // Two blank lines before cutting
+			  '\x1D\x56\x41', // Cut paper
+			];
+		  
+			await window.qz.print(config, data);
+			alert('Printed successfully!');
+		  } catch (error) {
+			console.error('Printing failed', error);
+		  }
+		  
+		  
+		  
           
       
 				}
