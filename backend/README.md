@@ -1,2 +1,0 @@
-# hiruni-backend
-nodejs backend

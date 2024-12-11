@@ -116,6 +116,7 @@ const Login: NextPage<ILoginProps> = ({ isSignUp }) => {
 					if (!querySnapshot.empty) {
 						const userData = querySnapshot.docs[0].data();
 						localStorage.setItem('user', JSON.stringify(userData));
+						localStorage.setItem('userRole', userData.position);
 						console.log(userData.position);
 						switch (userData.position) {
 							case 'Admin':
