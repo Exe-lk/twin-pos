@@ -261,46 +261,42 @@ function index() {
 		  
 			const config = window.qz.configs.create('XP-58');
 		  
-			// Convert Base64 image to binary
-			const logoImageBase64:any = await fetchImageAsBase64(Logo); // Function fetches Base64
-			const logoImageBinary = atob(logoImageBase64.split(',')[1]); // Convert to binary data
-		  
-			// Font size adjustment
-			const fontSmall = '\x1D\x21\x00'; // Default size
-			const fontDouble = '\x1D\x21\x11'; // Double height and width
-		  
-			// Print data
+			// Convert your invoice HTML to plain text with formatting
 			const data = [
 			  '\x1B\x40', // Initialize printer
+			  '\x1D\x21\x10', // Set font size to a smaller font (smaller than the default size)
 			  '\x1B\x61\x01', // Center alignment
-			  '\n',
-			  // Logo image
-			  '\x1D\x76\x30\x00', // Print raster bit image command
-			  logoImageBinary, // Logo binary data (ensure printer compatibility)
-			  '\n',
-			  fontSmall, // Reset to small font
-			  'No.137M,\nColombo Road,\nBiyagama\n',
-			  'TEL : -076 227 1846 / 076 348 0380\n\n',
+		  
+			  'No.137M,\nColombo Road,\nBiyagama\n', // Address
+			  'TEL: 076 227 1846 / 076 348 0380\n\n', // Contact details
 			  '\x1B\x61\x00', // Left alignment
-			  '--------------------------------\n',
-			  'Product     Qty  U/Price  D/Amt  Net Value\n',
-			  '--------------------------------\n',
+			  `CASHIER: UNIT NO: 2\nSTART TIME: ${currentTime}\nINVOICE NO: ${id}\n`,
+			  '\x1B\x61\x00', // Left alignment
+			  '----------------------------\n', // Line adjusted for width
+			  'Product Qty U/Price D/Amt\n', // Columns adjusted
+			  'Net Value\n',
+			  '----------------------------\n',
 			  ...orderedItems.map(({ name, quantity, price, discount }) => {
 				const discountAmount = ((price * quantity) / 100) * discount;
 				const netValue = price * quantity - discountAmount;
-				return `${name} ${quantity}   ${price.toFixed(2)}   ${discountAmount.toFixed(2)}   ${netValue.toFixed(2)}\n`;
+		  
+				// Adjust name length and spacing
+				const truncatedName = name.length > 10 ? name.substring(0, 10) + '...' : name;
+		  
+				return `${truncatedName} ${quantity}  ${price.toFixed(2)}  ${discountAmount.toFixed(2)}  ${netValue.toFixed(2)}\n`;
 			  }),
-			  '--------------------------------\n',
+			  '----------------------------\n',
 			  `SUB Total: ${calculateTotal()}\n`,
 			  `Cash Received: ${amount}.00\n`,
 			  `Balance: ${(amount - Number(calculateTotal())).toFixed(2)}\n`,
 			  `No. of Pieces: ${orderedItems.length}\n`,
 			  `DATE: ${currentDate}\n`,
-			  '\n\n', // Blank lines
+			  '----------------------------\n',
 			  '\x1B\x61\x01', // Center alignment
 			  'THANK YOU COME AGAIN\n',
-			  '--------------------------------\n',
-			  '\n\n', // Two blank lines before cutting
+			  '----------------------------\n',
+			  '\x1B\x61\x01', // Center alignment
+			  'Please call our hotline\nfor your valued suggestions and comments.\n',
 			  '\x1D\x56\x41', // Cut paper
 			];
 		  
@@ -309,6 +305,8 @@ function index() {
 		  } catch (error) {
 			console.error('Printing failed', error);
 		  }
+		  
+		  
 		  
 		  
 		  
