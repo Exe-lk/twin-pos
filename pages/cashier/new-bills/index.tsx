@@ -1,77 +1,59 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 const Home = () => {
-  const [printer, setPrinter] = useState<USBDevice | null>(null);
-  const [isConnected, setIsConnected] = useState(false);
-  const [printData, setPrintData] = useState('');
+  const [isQzReady, setIsQzReady] = useState(false);
 
-  const connectPrinter = async () => {
-    try {
-      const device = await navigator.usb.requestDevice({ filters: [{ classCode: 7 }] });
-      await device.open();
-      if (device.configuration === null) {
-        await device.selectConfiguration(1);
-      }
-      await device.claimInterface(0);
-      setPrinter(device);
-      setIsConnected(true);
-      alert(`Connected to printer: ${device.productName}`);
-    } catch (error) {
-      console.error('Error connecting to printer:', error);
-      alert('Failed to connect to the printer. Make sure it’s compatible.');
-    }
-  };
+  useEffect(() => {
+    const script = document.createElement('script');
+    script.src = 'https://cdn.jsdelivr.net/npm/qz-tray@2.2.4/qz-tray.min.js';
+    script.async = true;
 
-  const print = async () => {
-    if (!printer) {
-      alert('No printer connected');
+    script.onload = () => {
+      console.log('QZ Tray script loaded.');
+      setIsQzReady(true);
+    };
+
+    script.onerror = () => {
+      console.error('Failed to load QZ Tray script.');
+    };
+
+    document.body.appendChild(script);
+
+    return () => {
+      document.body.removeChild(script);
+    };
+  }, []);
+
+  const handlePrint = async () => {
+    if (!isQzReady || typeof window.qz === 'undefined') {
+      console.error('QZ Tray is not ready.');
+      alert('QZ Tray is not loaded yet. Please try again later.');
       return;
     }
 
     try {
-      const encoder = new TextEncoder();
-      const data = encoder.encode(printData + '\n'); // Convert text to binary data
-      await printer.transferOut(1, data); // Transfer data to the printer
-      alert('Print successful!');
-    } catch (error) {
-      console.error('Error printing:', error);
-      alert('Failed to print. Check printer connection.');
-    }
-  };
+      if (!window.qz.websocket.isActive()) {
+        await window.qz.websocket.connect();
+      }
 
-  const disconnectPrinter = async () => {
-    if (printer) {
-      await printer.close();
-      setPrinter(null);
-      setIsConnected(false);
-      alert('Printer disconnected.');
+      const config = window.qz.configs.create('XP-58');
+      const data = [
+        '\x1B\x40', // Initialize printer
+        'Hello, World!\n',
+        '\x1D\x56\x41', // Cut paper
+      ];
+
+      await window.qz.print(config, data);
+      alert('Printed successfully!');
+    } catch (error) {
+      console.error('Printing failed', error);
     }
   };
 
   return (
-    <div style={{ padding: '20px' }}>
-      <h1>WebUSB Printer Test</h1>
-      <div>
-        {!isConnected ? (
-          <button onClick={connectPrinter}>Connect to Printer</button>
-        ) : (
-          <button onClick={disconnectPrinter}>Disconnect Printer</button>
-        )}
-      </div>
-      {isConnected && (
-        <div style={{ marginTop: '20px' }}>
-          <textarea
-            rows={5}
-            cols={40}
-            placeholder="Enter text to print"
-            value={printData}
-            onChange={(e) => setPrintData(e.target.value)}
-          ></textarea>
-          <button onClick={print} style={{ marginTop: '10px' }}>
-            Print
-          </button>
-        </div>
-      )}
+    <div>
+      <h1>Print Page</h1>
+      <button onClick={handlePrint}>Print</button>
     </div>
   );
 };
