@@ -2812,10 +2812,10 @@ escpos-usb@^3.0.0-alpha.4:
   dependencies:
     usb "*"
 
-escpos@^3.0.0-alpha.4:
-  version "3.0.0-alpha.4"
-  resolved "https://registry.yarnpkg.com/escpos/-/escpos-3.0.0-alpha.4.tgz#9e92e101ce6db9a863ce6796b78486b8b0fefebd"
-  integrity sha512-qwFKR7CWpMo4QdkTBigan+jEETHOMi0vXI4NrW9YTOEDcP3y2JdY74o+Kd0b4B5JIiiCuqSLzIui2v7qtqSP1w==
+escpos@^3.0.0-alpha.6:
+  version "3.0.0-alpha.6"
+  resolved "https://registry.yarnpkg.com/escpos/-/escpos-3.0.0-alpha.6.tgz#2044edc0c5000d34bf50ea77a59600581035ce05"
+  integrity sha512-c8AkmO6i9+Jjp1+KWlS3Bv/1VspaS1VSM+UX4XMN/7ICwnrdgF0Y4Oi+8kJxIit7M9xXEdN6ry//7Vbgr/Q0dw==
   dependencies:
     get-pixels "*"
     iconv-lite "*"
