@@ -11,6 +11,7 @@ import Input from '../../../components/bootstrap/forms/Input';
 import Button from '../../../components/bootstrap/Button';
 import Checks, { ChecksGroup } from '../../../components/bootstrap/forms/Checks';
 import { printReceipt } from '../../../helpers/print';
+import Logo from '../../../assets/logos/logo-new.jpg'
 
 interface Category {
 	id: number;
@@ -411,7 +412,7 @@ function index() {
 
 				{/* Second Card */}
 				<div className='col-4'>
-					<Card stretch className='mt-4 p-4' style={{ height: '75vh' }}>
+				<Card stretch className='mt-4 p-4' style={{ height: '75vh' }}>
 						<CardBody isScrollable>
 							<div
 								// ref={printRef} // Attach the ref here
@@ -423,13 +424,16 @@ function index() {
 								}}
 								className='p-3'>
 								<center>
-									<h6>TWIN CLOTHING</h6>
+								<img src={Logo} style={{ height: 50, width: 100 }} alt="" />
 									<p>
-										144/1. KATUWANA ROAD,
+									No.137M,
 										<br />
-										HOMAGAMA.
+										Colombo Road,
+										
 										<br />
-										TEL : - 0112 - 894991
+										Biyagama
+										<br />
+										TEL : -076 227 1846 / 076 348 0380
 									</p>
 								</center>
 								<div className='d-flex justify-content-between align-items-center mt-4'>
@@ -457,9 +461,9 @@ function index() {
 											{cid}&emsp;&emsp;&emsp;{quantity}&emsp;&emsp;{price}
 											.00&emsp;&emsp; {((price * quantity) / 100) *
 												discount}{' '}
-											&emsp;
-											{price * quantity -
-												((price * quantity) / 100) * discount}
+											&emsp;&emsp;
+											{(price * quantity -
+												((price * quantity) / 100) * discount).toFixed(2)}
 										</p>
 									),
 								)}
