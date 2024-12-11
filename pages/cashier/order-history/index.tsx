@@ -11,6 +11,9 @@ import Dropdown, {
 	DropdownToggle,
 } from '../../../components/bootstrap/Dropdown';
 import Button from '../../../components/bootstrap/Button';
+import SubHeader, { SubHeaderLeft, SubHeaderRight, SubheaderSeparator } from '../../../layout/SubHeader/SubHeader';
+import Icon from '../../../components/icon/Icon';
+import Input from '../../../components/bootstrap/forms/Input';
 
 interface Orders {
 	id: string;
@@ -40,7 +43,7 @@ const Index: React.FC = () => {
 	const [filteredOrders, setFilteredOrders] = useState<Orders[]>([]);
 	const [user, setUser] = useState<User[]>([]);
 	const [expandedRow, setExpandedRow] = useState(null);
-
+	const [searchTerm, setSearchTerm] = useState(''); // State for search term
 	const toggleRow = (index: any) => {
 		setExpandedRow(expandedRow === index ? null : index);
 	};
@@ -177,11 +180,41 @@ const Index: React.FC = () => {
 	return (
 		<>
 			<PageWrapper>
+			<SubHeader>
+				<SubHeaderLeft>
+					{/* Search input */}
+					<label
+						className='border-0 bg-transparent cursor-pointer me-0'
+						htmlFor='searchInput'>
+						<Icon icon='Search' size='2x' color='primary' />
+					</label>
+					<Input
+						id='searchInput'
+						type='search'
+						className='border-0 shadow-none bg-transparent'
+						placeholder='Search...'
+						onChange={(event: any) => {
+							setSearchTerm(event.target.value);
+						}}
+						value={searchTerm}
+					/>
+				</SubHeaderLeft>
+				
+			</SubHeader>
 				<Page>
 					<div className='row h-100'>
 						<div className='col-12'>
 							<Card stretch>
 								<CardTitle className='d-flex justify-content-between align-items-center m-4'>
+								<div className='mt-2 mb-4'>
+										Select date :
+										<input
+											type='date'
+											onChange={(e: any) => setSearchDate(e.target.value)}
+											value={searchDate}
+											className='px-3 py-2 ms-4 border border-blue-500 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
+										/>
+									</div>
 									<div className='flex-grow-1 text-center text-primary'>
 										Purchasing History
 									</div>
@@ -199,15 +232,7 @@ const Index: React.FC = () => {
 									</Dropdown>
 								</CardTitle>
 								<CardBody isScrollable className='table-responsive'>
-									{/* <div className='mt-2 mb-4'>
-										Select date :
-										<input
-											type='date'
-											onChange={(e: any) => setSearchDate(e.target.value)}
-											value={searchDate}
-											className='px-3 py-2 ms-4 border border-blue-500 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
-										/>
-									</div> */}
+									
 									<table className='table table-hover table-bordered border-primary'>
 										<thead className={'table-dark border-primary'}>
 											<tr>
@@ -216,11 +241,22 @@ const Index: React.FC = () => {
 												<th>End Time</th>
 												<th>Cashier</th>
 												<th>Bill No</th>
-												<th>Sub Total</th>
+												<th>Sub Total (LKR)</th>
 											</tr>
 										</thead>
 										<tbody>
-											{orders.map((order, index) => (
+											{filteredOrders
+											
+											.filter((val) => {
+												if (searchTerm === '') {
+													return val;
+												} else if (
+													val.id.toString().includes(searchTerm)
+												) {
+													return val;
+												}
+											})
+											.map((order, index) => (
 												<React.Fragment key={index}>
 													<tr
 														onClick={() => toggleRow(index)}
