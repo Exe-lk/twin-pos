@@ -1,46 +1,59 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 const Home = () => {
-  const [printData, setPrintData] = useState('');
-  const [status, setStatus] = useState('');
+  const [isQzReady, setIsQzReady] = useState(false);
 
-  const sendPrintJob = async () => {
+  useEffect(() => {
+    const script = document.createElement('script');
+    script.src = 'https://cdn.jsdelivr.net/npm/qz-tray@2.2.4/qz-tray.min.js';
+    script.async = true;
+
+    script.onload = () => {
+      console.log('QZ Tray script loaded.');
+      setIsQzReady(true);
+    };
+
+    script.onerror = () => {
+      console.error('Failed to load QZ Tray script.');
+    };
+
+    document.body.appendChild(script);
+
+    return () => {
+      document.body.removeChild(script);
+    };
+  }, []);
+
+  const handlePrint = async () => {
+    if (!isQzReady || typeof window.qz === 'undefined') {
+      console.error('QZ Tray is not ready.');
+      alert('QZ Tray is not loaded yet. Please try again later.');
+      return;
+    }
+
     try {
-      const response = await fetch('http://localhost:5000/print', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ content: printData }),
-      });
-
-      const result = await response.json();
-
-      if (response.ok) {
-        setStatus('Print job completed successfully!');
-      } else {
-        setStatus(`Failed: ${result.error}`);
+      if (!window.qz.websocket.isActive()) {
+        await window.qz.websocket.connect();
       }
+
+      const config = window.qz.configs.create('XP-58');
+      const data = [
+        '\x1B\x40', // Initialize printer
+        'Hello, World!\n',
+        '\x1D\x56\x41', // Cut paper
+      ];
+
+      await window.qz.print(config, data);
+      alert('Printed successfully!');
     } catch (error) {
-      console.error('Error sending print job:', error);
-      setStatus('Failed to connect to the backend.');
+      console.error('Printing failed', error);
     }
   };
 
   return (
-    <div style={{ padding: '20px' }}>
-      <h1>Printer Test</h1>
-      <textarea
-        rows={5}
-        cols={40}
-        placeholder="Enter text to print"
-        value={printData}
-        onChange={(e) => setPrintData(e.target.value)}
-      ></textarea>
-      <button onClick={sendPrintJob} style={{ marginTop: '10px' }}>
-        Print
-      </button>
-      <div>{status && <p>{status}</p>}</div>
+    <div>
+      <h1>Print Page</h1>
+      <button onClick={handlePrint}>Print</button>
     </div>
   );
 };
