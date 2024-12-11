@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import PageWrapper from '../../../layout/PageWrapper/PageWrapper';
-import { addDoc, collection, getDocs, query, where } from 'firebase/firestore';
+import { addDoc, collection, doc, getDocs, query, updateDoc, where } from 'firebase/firestore';
 import { firestore } from '../../../firebaseConfig';
 import 'react-simple-keyboard/build/css/index.css';
 import Swal from 'sweetalert2';
@@ -10,7 +10,7 @@ import FormGroup from '../../../components/bootstrap/forms/FormGroup';
 import Input from '../../../components/bootstrap/forms/Input';
 import Button from '../../../components/bootstrap/Button';
 import Checks, { ChecksGroup } from '../../../components/bootstrap/forms/Checks';
-import { printReceipt } from '../../../helpers/print'
+import { printReceipt } from '../../../helpers/print';
 
 interface Category {
 	id: number;
@@ -49,7 +49,7 @@ function index() {
 		'-------------------',
 		'Total - $25.00',
 		'Thank you!',
-	  ]);
+	]);
 	useEffect(() => {
 		const cashier = localStorage.getItem('user');
 		if (cashier) {
@@ -161,70 +161,71 @@ function index() {
 			.toFixed(2);
 	};
 
-	const addbill = async () => {
+	const addbill = async () => { 
 		if (amount >= Number(calculateTotal())) {
 			try {
 				const result = await Swal.fire({
 					title: 'Are you sure?',
 					text: 'You will not be able to recover this status!',
-					// text: id,
 					icon: 'warning',
 					showCancelButton: true,
 					confirmButtonColor: '#3085d6',
 					cancelButtonColor: '#d33',
 					confirmButtonText: 'Yes, Print Bill!',
 				});
-
+	
 				if (result.isConfirmed) {
-					printReceipt(lines)
-					// const amount = calculateTotal();
-					// const currentDate = new Date();
-					// const formattedDate = currentDate.toLocaleDateString();
-
-					// const year = currentDate.getFullYear();
-					// const month = String(currentDate.getMonth() + 1).padStart(2, '0');
-					// const day = String(currentDate.getDate()).padStart(2, '0');
-					// const formattedDate1 = `${year}-${month}-${day}`;
-
-					// const values = {
-					// 	orders: orderedItems,
-					// 	time: currentTime,
-					// 	date: formattedDate,
-					// 	casheir: casher.email,
-					// 	amount: Number(amount),
-					// 	type: payment ? 'cash' : 'card',
-					// 	id: id,
-					// };
-
-					// const collectionRef = collection(firestore, 'orders');
-
-					// addDoc(collectionRef, values)
-					// 	.then(() => {
-					// 		Swal.fire(
-					// 			'Added!',
-
-					// 			'bill has been add successfully.',
-					// 			'success',
-					// 		);
-					// 		setOrderedItems([]);
-
-					// 		setAmount(0);
-					// 	})
-					// 	.catch((error) => {
-					// 		console.error('Error adding document: ', error);
-					// 		alert(
-					// 			'An error occurred while adding the document. Please try again later.',
-					// 		);
-					// 	});
+					printReceipt(lines);
+					const totalAmount = calculateTotal();
+					const currentDate = new Date();
+					const formattedDate = currentDate.toLocaleDateString();
+	
+					const values = {
+						orders: orderedItems,
+						time: currentTime,
+						date: formattedDate,
+						casheir: casher.email,
+						amount: Number(totalAmount),
+						type: payment ? 'cash' : 'card',
+						id: id,
+					};
+	
+					console.log(orderedItems);
+	
+					const collectionRef = collection(firestore, 'orders');
+	
+					// Save the order
+					await addDoc(collectionRef, values);
+	
+					// Update the item quantities
+					const updatePromises = orderedItems.map(async (order) => {
+						const itemRef = doc(firestore, 'item', order.cid);
+						const newQuantity = order.quentity - order.quantity; // Calculate new quantity
+						await updateDoc(itemRef, {
+							quentity: newQuantity > 0 ? newQuantity : 0, // Ensure quantity doesn't go below zero
+						});
+					});
+	
+					// Wait for all updates to complete
+					await Promise.all(updatePromises);
+	
+					Swal.fire(
+						'Added!',
+						'Bill has been added successfully.',
+						'success',
+					);
+					setOrderedItems([]);
+					setAmount(0);
 				}
 			} catch (error) {
 				console.error('Error during handleUpload: ', error);
-				alert('An error occurred during file upload. Please try again later.');
+				alert('An error occurred. Please try again later.');
 			}
 		} else {
-			Swal.fire('warning..!', 'insufficient amount', 'error');
+			Swal.fire('Warning..!', 'Insufficient amount', 'error');
 		}
 	};
+	
 	return (
 		<PageWrapper className=''>
 			<div className='row m-4'>
@@ -287,7 +288,8 @@ function index() {
 											className='col-12'>
 											<Dropdown
 												aria-label='State'
-												placeholder="-- Select Product --"
+												editable 
+												placeholder='-- Select Product --'
 												className='selectpicker col-12'
 												options={
 													items
@@ -302,7 +304,7 @@ function index() {
 												}
 												// onBlur={formik.handleBlur}
 												value={selectedProduct}
-												filter
+												
 											/>
 											{/* <Select
 												ariaLabel='Default select example'
@@ -374,14 +376,25 @@ function index() {
 												className='col-12 mt-2'>
 												<Input
 													type='number'
-													onChange={(e: any) =>
-														setAmount(Number(e.target.value))
-													}
+													onChange={(e: any) => {
+														let value = e.target.value;
+
+														// Remove leading zero if it's the first character
+														if (
+															value.length > 1 &&
+															value.startsWith('0')
+														) {
+															value = value.substring(1); // Remove the first character
+														}
+
+														setAmount(value); // Update the state with the modified value
+													}}
 													value={amount}
-													min={1}
+													min={0}
 													validFeedback='Looks good!'
 												/>
 											</FormGroup>
+										
 											<Button
 												color='success'
 												className='mt-4 w-100'
@@ -442,7 +455,8 @@ function index() {
 											{index + 1}. {name}
 											<br />
 											{cid}&emsp;&emsp;&emsp;{quantity}&emsp;&emsp;{price}
-											.00&emsp;&emsp; {((price * quantity) / 100) * discount}{' '}
+											.00&emsp;&emsp; {((price * quantity) / 100) *
+												discount}{' '}
 											&emsp;
 											{price * quantity -
 												((price * quantity) / 100) * discount}
