@@ -10,7 +10,6 @@ import FormGroup from '../../../components/bootstrap/forms/FormGroup';
 import Input from '../../../components/bootstrap/forms/Input';
 import Button from '../../../components/bootstrap/Button';
 import Checks, { ChecksGroup } from '../../../components/bootstrap/forms/Checks';
-import { printReceipt } from '../../../helpers/print';
 import Logo from '../../../assets/logos/logo-new.jpg';
 
 interface Category {
@@ -29,7 +28,6 @@ interface Item {
 }
 
 function index() {
-	const [toggleRightPanel, setToggleRightPanel] = useState(true);
 	const [orderedItems, setOrderedItems] = useState<Item[]>([]);
 	const [items, setItems] = useState<Item[]>([]);
 	const [selectedProduct, setSelectedProduct] = useState<string>('');
@@ -43,14 +41,7 @@ function index() {
 		hour: '2-digit',
 		minute: '2-digit',
 	});
-	const [lines, setLines] = useState<string[]>([
-		'Welcome to XYZ Store!',
-		'Item A - $10.00',
-		'Item B - $15.00',
-		'-------------------',
-		'Total - $25.00',
-		'Thank you!',
-	]);
+	const [isQzReady, setIsQzReady] = useState(false);
 	useEffect(() => {
 		const cashier = localStorage.getItem('user');
 		if (cashier) {
@@ -72,7 +63,7 @@ function index() {
 							...data,
 						};
 					})
-					.sort((a, b) => b.id - a.id); // Sort by id in ascending order
+					.sort((a, b) => b.id - a.id);
 				setId(firebaseData[0].id + 1 || 1500);
 				console.log(firebaseData[0].id + 1);
 			} catch (error) {
@@ -102,17 +93,34 @@ function index() {
 		};
 		fetchData();
 	}, []);
+	useEffect(() => {
+		const script = document.createElement('script');
+		script.src = 'https://cdn.jsdelivr.net/npm/qz-tray@2.2.4/qz-tray.min.js';
+		script.async = true;
+
+		script.onload = () => {
+			console.log('QZ Tray script loaded.');
+			setIsQzReady(true);
+		};
+
+		script.onerror = () => {
+			console.error('Failed to load QZ Tray script.');
+		};
+
+		document.body.appendChild(script);
+
+		return () => {
+			document.body.removeChild(script);
+		};
+	}, []);
 
 	const handlePopupOk = async () => {
 		if (!selectedProduct || quantity <= 0) {
 			Swal.fire('Error', 'Please select a product and enter a valid quantity.', 'error');
 			return;
 		}
-
-		// Find the selected item in the original items list
 		const selectedItem = items.find((item) => item.cid === selectedProduct);
 		if (selectedItem) {
-			// Check if the item is already in the orderedItems array
 			const existingItemIndex = orderedItems.findIndex(
 				(item) => item.cid === selectedProduct,
 			);
@@ -120,20 +128,16 @@ function index() {
 			let updatedItems;
 
 			if (existingItemIndex !== -1) {
-				// Item already exists; replace it with the new value
 				updatedItems = [...orderedItems];
 				updatedItems[existingItemIndex] = {
 					...selectedItem,
 					quantity,
 				};
 			} else {
-				// Item doesn't exist; add it as a new entry
 				updatedItems = [...orderedItems, { ...selectedItem, quantity }];
 			}
 
 			setOrderedItems(updatedItems);
-
-			// Reset form fields
 			setSelectedProduct('');
 			setQuantity(1);
 
@@ -141,8 +145,8 @@ function index() {
 				title: 'Success',
 				text: 'Item added/replaced successfully.',
 				icon: 'success',
-				showConfirmButton: false, // Hides the OK button
-				timer: 2000, // Closes the alert after 2 seconds (2000ms)
+				showConfirmButton: false,
+				timer: 1000,
 			});
 		} else {
 			Swal.fire('Error', 'Selected item not found.', 'error');
@@ -150,18 +154,19 @@ function index() {
 	};
 
 	const handleDeleteItem = (cid: string) => {
-		// Filter out the item with the matching cid
 		const updatedItems = orderedItems.filter((item) => item.cid !== cid);
 		setOrderedItems(updatedItems);
+
 		Swal.fire({
 			title: 'Success',
 			text: 'Item removed successfully.',
 			icon: 'success',
-			showConfirmButton: false, // Hides the OK button
-			timer: 2000, // Closes the alert after 2 seconds (2000ms)
+			showConfirmButton: false,
+			timer: 1000,
 		});
 	};
-	const calculateTotal = () => {
+
+	const calculateSubTotal = () => {
 		return orderedItems
 			.reduce(
 				(sum, val) =>
@@ -172,9 +177,22 @@ function index() {
 			)
 			.toFixed(2);
 	};
+	const calculateDiscount = () => {
+		return orderedItems
+			.reduce((sum, val) => sum + ((val.price * val.quantity) / 100) * val.discount, 0)
+			.toFixed(2);
+	};
+
+	const calculateTotal = () => {
+		return orderedItems.reduce((sum, val) => sum + val.price * val.quantity, 0).toFixed(2);
+	};
 
 	const addbill = async () => {
-		if (amount >= Number(calculateTotal())) {
+		if (
+			amount >= Number(calculateSubTotal()) &&
+			amount > 0 &&
+			Number(calculateSubTotal()) > 0
+		) {
 			try {
 				const result = await Swal.fire({
 					title: 'Are you sure?',
@@ -187,8 +205,7 @@ function index() {
 				});
 
 				if (result.isConfirmed) {
-					printReceipt(lines);
-					const totalAmount = calculateTotal();
+					const totalAmount = calculateSubTotal();
 					const currentDate = new Date();
 					const formattedDate = currentDate.toLocaleDateString();
 
@@ -201,35 +218,89 @@ function index() {
 						type: payment ? 'cash' : 'card',
 						id: id,
 					};
-
-					console.log(orderedItems);
-
 					const collectionRef = collection(firestore, 'orders');
-
-					// Save the order
 					await addDoc(collectionRef, values);
-
-					// Update the item quantities
 					const updatePromises = orderedItems.map(async (order) => {
 						const itemRef = doc(firestore, 'item', order.cid);
-						const newQuantity = order.quentity - order.quantity; // Calculate new quantity
+						const newQuantity = order.quentity - order.quantity;
 						await updateDoc(itemRef, {
-							quentity: newQuantity > 0 ? newQuantity : 0, // Ensure quantity doesn't go below zero
+							quentity: newQuantity > 0 ? newQuantity : 0,
 						});
 					});
-
-					// Wait for all updates to complete
 					await Promise.all(updatePromises);
-
 					Swal.fire({
 						title: 'Success',
 						text: 'Bill has been added successfully.',
 						icon: 'success',
 						showConfirmButton: false, // Hides the OK button
-						timer: 2000, // Closes the alert after 2 seconds (2000ms)
+						timer: 1000, // Closes the alert after 2 seconds (2000ms)
 					});
 					setOrderedItems([]);
 					setAmount(0);
+					if (!isQzReady || typeof window.qz === 'undefined') {
+						console.error('QZ Tray is not ready.');
+						alert('QZ Tray is not loaded yet. Please try again later.');
+						return;
+					}
+
+					try {
+						if (!window.qz.websocket.isActive()) {
+							await window.qz.websocket.connect();
+						}
+
+						const config = window.qz.configs.create('XP-58');
+
+						const data = [
+							'\x1B\x40',
+							'\x1B\x4D\x00',
+							'\x1B\x61\x01',
+							'No.137M,\nColombo Road,\nBiyagama\n\n',
+							'\x1B\x61\x00',
+							'TEL:076 227 1846 / 076 348 0380\n\n',
+							`Date      :${currentDate}\n
+							 START TIME: ${currentTime}\n
+							 INVOICE NO: ${id}\n`,
+							'\x1B\x61\x00',
+							'----------------------------\n',
+							'Product Qty U/Price Net Value\n',
+							'----------------------------\n',
+							...orderedItems.map(({ name, quantity, price, discount }) => {
+								const discountAmount = ((price * quantity) / 100) * discount;
+								const netValue = price * quantity - discountAmount;
+								const truncatedName =
+									name.length > 10 ? name.substring(0, 10) + '...' : name;
+
+								return `${truncatedName} \n         ${quantity}  ${price.toFixed(
+									2,
+								)} ${netValue.toFixed(2)}\n`;
+							}),
+							'----------------------------\n',
+							`TOTAL           : ${calculateTotal()}\n`,
+							`Discount Amount : ${calculateDiscount()}\n`,
+							`SUB TOTAL       : ${calculateSubTotal()}\n`,
+							`Cash Received   : ${amount}.00\n`,
+							`Balance         : ${(amount - Number(calculateSubTotal())).toFixed(
+								2,
+							)}\n`,
+							'\n',
+							`No. of Pieces   : ${orderedItems.length}\n`,
+							'----------------------------\n',
+							'\x1B\x61\x01',
+							'THANK YOU COME AGAIN !\n',
+							'----------------------------\n',
+							'\x1B\x61\x01',
+							'Retail POS by EXE.lk\n',
+							'Call: 070 332 9900\n',
+							'----------------------------\n',
+							'----------------------------\n',
+							'----------------------------\n',
+							'\x1D\x56\x41',
+						];
+
+						await window.qz.print(config, data);
+					} catch (error) {
+						console.error('Printing failed', error);
+					}
 				}
 			} catch (error) {
 				console.error('Error during handleUpload: ', error);
@@ -243,7 +314,6 @@ function index() {
 	return (
 		<PageWrapper className=''>
 			<div className='row m-4'>
-				{/* First Card with two cards at the bottom occupying full width */}
 				<div className='col-8 mb-3 mb-sm-0'>
 					<Card stretch className='mt-4 ' style={{ height: '75vh' }}>
 						<CardBody isScrollable>
@@ -285,7 +355,7 @@ function index() {
 										<td colSpan={4} className='text fw-bold'>
 											Total
 										</td>
-										<td className='fw-bold'>{calculateTotal()}</td>
+										<td className='fw-bold'>{calculateSubTotal()}</td>
 										<td></td>
 									</tr>
 								</tbody>
@@ -448,19 +518,21 @@ function index() {
 									</p>
 								</center>
 								<div className='d-flex justify-content-between align-items-center mt-4'>
-									<div>
-										<p className='mb-0'>CASHIER</p>
-										<p className='mb-0'>UNIT NO: 2 &emsp;</p>
-									</div>
-									<div className='text-end'>
-										<p className='mb-0'>START TIME:{currentTime}</p>
-										<p className='mb-0'>INVOICE NO:{id}</p>
+									<div className='text-start'>
+										<p className='mb-0'>
+											DATE &nbsp;&emsp; &emsp; &emsp;:&emsp;{currentDate}
+										</p>
+										<p className='mb-0'>START TIME&emsp;:&emsp;{currentTime}</p>
+										<p className='mb-0'> INVOICE NO&nbsp; &nbsp;:&emsp;{id}</p>
 									</div>
 								</div>
 
 								<hr />
 								<hr />
-								<p>Product &emsp;Qty&emsp; U/Price&emsp; D/Amt&emsp; Net Value</p>
+								<p>
+									Product &emsp;Qty&emsp;&emsp; U/Price&emsp;&emsp;&emsp; Net
+									Value
+								</p>
 
 								<hr />
 
@@ -469,25 +541,33 @@ function index() {
 										<p>
 											{index + 1}. {name}
 											<br />
-											{cid}&emsp;&emsp;&emsp;{quantity}&emsp;&emsp;{price}
-											.00&emsp;&emsp; {((price * quantity) / 100) *
-												discount}{' '}
-											&emsp;&emsp;
-											{(
-												price * quantity -
-												((price * quantity) / 100) * discount
-											).toFixed(2)}
+											{cid}&emsp;&emsp;&emsp;
+											{quantity}&emsp;&emsp;&emsp;
+											{price}.00&emsp;&emsp;&emsp;&emsp;
+											{(price * quantity).toFixed(2)}
 										</p>
 									),
 								)}
 
 								<hr />
 								<div className='d-flex justify-content-between'>
-									<div>
-										<strong>SUB Total</strong>
-									</div>
+									<div>Total</div>
 									<div>
 										<strong>{calculateTotal()}</strong>
+									</div>
+								</div>
+								<div className='d-flex justify-content-between'>
+									<div>Discount</div>
+									<div>
+										<strong>{calculateDiscount()}</strong>
+									</div>
+								</div>
+								<div className='d-flex justify-content-between'>
+									<div>
+										<strong>Sub Total</strong>
+									</div>
+									<div>
+										<strong>{calculateSubTotal()}</strong>
 									</div>
 								</div>
 								<hr />
@@ -497,35 +577,23 @@ function index() {
 								</div>
 								<div className='d-flex justify-content-between'>
 									<div>Balance</div>
-									<div>{amount - Number(calculateTotal())}</div>
+									<div>{amount - Number(calculateSubTotal())}</div>
 								</div>
 								<div className='d-flex justify-content-between'>
 									<div>No.Of Pieces</div>
 									<div>{orderedItems.length}</div>
 								</div>
-								<div className='d-flex justify-content-between'>
-									<div>DATE : {currentDate}</div>
-								</div>
+
 								<hr />
 								<center>THANK YOU COME AGAIN</center>
 								<hr />
 
-								<center style={{ fontSize: '11px' }}>
-									Please call our hotline
-									<br />
-									for your valued suggestions and comments.
-								</center>
+								<center style={{ fontSize: '11px' }}></center>
 							</div>
 						</CardBody>
 					</Card>
 				</div>
 			</div>
-
-			{/* <CommonRightPanel
-				setOpen={setToggleRightPanel}
-				isOpen={toggleRightPanel}
-				orderedItems={orderedItems}
-			/> */}
 		</PageWrapper>
 	);
 }
