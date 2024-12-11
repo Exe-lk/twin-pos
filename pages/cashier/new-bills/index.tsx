@@ -40,6 +40,8 @@ const Home = () => {
       const data = [
         '\x1B\x40', // Initialize printer
         'Hello, World!\n',
+        'Hello, World!\n',
+        'Hello, World!\n',
         '\x1D\x56\x41', // Cut paper
       ];
 
