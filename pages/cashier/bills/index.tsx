@@ -280,7 +280,12 @@ function index() {
 							'----------------------------\n',
 							`TOTAL           : ${calculateTotal()}\n`,
 							`Discount Amount : ${calculateDiscount()}\n`,
+							'\x1B\x45\x01',
+							'\x1D\x21\x10',
 							`SUB TOTAL       : ${calculateSubTotal()}\n`,
+							'\x1D\x21\x00',
+							'\x1B\x45\x00',
+							'\n\n',
 							`Cash Received   : ${amount}.00\n`,
 							`Balance         : ${(amount - Number(calculateSubTotal())).toFixed(
 								2,
