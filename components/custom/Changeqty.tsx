@@ -137,7 +137,7 @@ const ItemEditModal: FC<ItemEditModalProps> = ({ id, isOpen, setIsOpen }) => {
 			image: "",
 			name: "",
 			price: 0,
-			quentity: 0,
+			quentity: "",
 			reorderlevel: 0,
 			category: "",
 			discount:0
@@ -172,8 +172,9 @@ const ItemEditModal: FC<ItemEditModalProps> = ({ id, isOpen, setIsOpen }) => {
 					showConfirmButton: false,
 				});
 				let data: any = item
-				const imgurl: any = await handleUploadimage()
-				data.image = imgurl || "";
+				data.quentity=item.quentity+values.quentity
+				
+
                 const docRef = doc(firestore, "item", id);
 				// Update the data
 				updateDoc(docRef, data).then(() => {
@@ -211,8 +212,8 @@ const ItemEditModal: FC<ItemEditModalProps> = ({ id, isOpen, setIsOpen }) => {
 					<FormGroup id='quentity' label='quantity' onChange={formik.handleChange} className='col-md-6'>
 						<Input
 							type='number'
-                            value={item.quentity}
-							onChange={(e: any) => { item.quentity = e.target.value }}
+                            value={formik.values.quentity}
+							onChange={formik.handleChange}
 							onBlur={formik.handleBlur}
 							isValid={formik.isValid}
 							isTouched={formik.touched.quentity}
