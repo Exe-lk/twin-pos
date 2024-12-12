@@ -252,12 +252,11 @@ function index() {
 
 						const data = [
 							'\x1B\x40',
-							'\x1B\x4D\x00',
 							'\x1B\x61\x01',
 							'\x1D\x21\x11',
 							'PAVO\n\n',
+							'\x1D\x21\x00',
 							'\x1B\x4D\x00',
-							'\x1B\x61\x01',
 							'No.137M,\nColombo Road,\nBiyagama\n\n',
 							'\x1B\x61\x00',
 							'TEL:076 227 1846 / 076 348 0380\n\n',
