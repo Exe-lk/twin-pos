@@ -72,7 +72,7 @@ function index() {
 		};
 
 		fetchData();
-	}, []);
+	}, [amount,orderedItems]);
 	useEffect(() => {
 		const fetchData = async () => {
 			try {
