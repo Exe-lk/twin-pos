@@ -72,7 +72,7 @@ function index() {
 		};
 
 		fetchData();
-	}, [amount,orderedItems]);
+	}, [amount, orderedItems]);
 	useEffect(() => {
 		const fetchData = async () => {
 			try {
@@ -235,8 +235,7 @@ function index() {
 						showConfirmButton: false, // Hides the OK button
 						timer: 1000, // Closes the alert after 2 seconds (2000ms)
 					});
-					setOrderedItems([]);
-					setAmount(0);
+
 					if (!isQzReady || typeof window.qz === 'undefined') {
 						console.error('QZ Tray is not ready.');
 						alert('QZ Tray is not loaded yet. Please try again later.');
@@ -267,9 +266,8 @@ function index() {
 							'----------------------------\n',
 							'Product Qty U/Price Net Value\n',
 							'----------------------------\n',
-							...orderedItems.map(({ name, quantity, price, discount }) => {
-								const discountAmount = ((price * quantity) / 100) * discount;
-								const netValue = price * quantity - discountAmount;
+							...orderedItems.map(({ name, quantity, price }) => {
+								const netValue = price * quantity;
 								const truncatedName =
 									name.length > 10 ? name.substring(0, 10) + '...' : name;
 
@@ -278,8 +276,7 @@ function index() {
 								)} ${netValue.toFixed(2)}\n`;
 							}),
 							'----------------------------\n',
-							`TOTAL           : ${calculateTotal()}\n`,
-							`Discount Amount : ${calculateDiscount()}\n\n`,
+
 							'\x1B\x61\x01',
 							'\x1B\x45\x01',
 							'\x1D\x21\x10',
@@ -308,6 +305,8 @@ function index() {
 						];
 
 						await window.qz.print(config, data);
+						setOrderedItems([]);
+						setAmount(0);
 					} catch (error) {
 						console.error('Printing failed', error);
 					}
