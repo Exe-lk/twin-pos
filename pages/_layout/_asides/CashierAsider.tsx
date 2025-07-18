@@ -21,18 +21,18 @@ const DefaultAside = () => {
 	// Context for theme
 	const { asideStatus, setAsideStatus } = useContext(ThemeContext);
 
-	useEffect(() => {
-		const validateUser = async () => {
-			const email = localStorage.getItem('userRole');
-			if (email == 'Cashier') {
+	// useEffect(() => {
+	// 	const validateUser = async () => {
+	// 		const email = localStorage.getItem('userRole');
+	// 		if (email == 'Cashier') {
 				
-			} else {
-				router.push('/');
-			}
-		};
+	// 		} else {
+	// 			router.push('/');
+	// 		}
+	// 	};
 
-		validateUser();
-	}, []);
+	// 	validateUser();
+	// }, []);
 	const router = useRouter();
 	// Function to handle logout button click
 	const handleLogout = async () => {

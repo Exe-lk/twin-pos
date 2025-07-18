@@ -265,7 +265,7 @@ const Index: React.FC = () => {
 														<td>{order.time}</td>
 														<td>{order.time}</td>
 														<td>{getCashierName(order.casheir)}</td>
-														<td>{order.id}</td>
+														<td>{index}</td>
 														<td>{order.amount}</td>
 													</tr>
 													{expandedRow === index && (
